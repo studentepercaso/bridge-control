@@ -1,0 +1,11 @@
+node_modules/
+coverage/
+*.log
+*.zip
+main.js
+main.js.map
+.env
+.env.*
+!.env.example
+data.json
+.obsidian/
