@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.4 - 2026-07-12
+
+- Remove `child_process` and every executable launch from Bridge Control; CLI diagnostics now report only a non-authoritative candidate and leave the definitive readiness check to the external bridge.
+- Use the vault's actual `Vault.configDir` in folder selection, replace control-character regular expressions with equivalent character-code validation, and resolve the reported promise, type, thrown-value, unused-code, and CSS `:has()` findings.
+- Migrate shared settings to version 5 so the real `Vault.configDir` is an authoritative, case-insensitive external-bridge deny rule. Legacy entries remain deny-all until their own vault records it, and intersecting saved folder grants are removed without inventing new authority.
+- Retain Node filesystem access only for documented external settings/lock/quarantine, read-only registry, one-time request, recovery-backup, and metadata-only audit stores; note reads and mutations remain exclusively on public Obsidian APIs.
+- Add a GitHub Actions release workflow that performs locked checks, requires two byte-identical builds, attests `main.js`, `manifest.json`, and `styles.css`, and creates a draft release from those exact assets. Its manual backfill path refuses to attest unless existing release assets match a clean tagged rebuild byte for byte.
+- Add no permission, command-protocol field, management operation, direct filesystem note-write, or other write surface.
+
 ## 0.5.3 - 2026-07-12
 
 - Publish metadata and documentation matching Obsidian Bridge 0.5.3, and update the read-only audit diagnostics parser/UI to accept and classify the two bounded manual-recovery codes.

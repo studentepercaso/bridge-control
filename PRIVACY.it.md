@@ -18,11 +18,13 @@ Bridge Control utilizza:
 
 Durante la configurazione e la diagnostica dei problemi recenti non legge né scrive il contenuto delle note. Può controllare se il percorso di una nota registrata nell'audit esiste e aprirla soltanto quando l'utente sceglie **Apri nota**.
 
-Durante un'operazione gestita autenticata, Bridge Control legge già la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.3 corrispondente usa uno snapshot UTF-8 esatto, limitato, di sola lettura e basato sulle impostazioni per ogni osservazione transazionale create/append e gestita, comprese preparazione, CAS, acquisizione backup, verifica dei blocchi e finale e classificazione del recupero. Le mutazioni create/append continuano a usare soltanto la CLI ufficiale allowlistata. Non cambiano categorie di dati, flussi di rete, permessi, campi del protocollo dei comandi o superfici di scrittura diretta.
+Durante un'operazione gestita autenticata, Bridge Control legge la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.4 corrispondente usa uno snapshot UTF-8 esatto, limitato, di sola lettura e basato sulle impostazioni per ogni osservazione transazionale create/append e gestita, comprese preparazione, CAS, acquisizione backup, verifica dei blocchi e finale e classificazione del recupero. Le mutazioni create/append continuano a usare soltanto la CLI ufficiale allowlistata. Non cambiano categorie di dati, flussi di rete, permessi, campi del protocollo dei comandi o superfici di scrittura diretta.
 
-Dopo un errore create/append successivo alla mutazione, il bridge esterno non esegue un ripristino CLI automatico e distruttivo. Conserva backup esatto ed evidenza audit composta solo da metadati, lascia intatta la nota osservata e può restituire `manual_recovery_required=true`. Bridge Control 0.5.3 riconosce i corrispondenti codici diagnostici limitati in Problemi recenti; non legge né mostra il corpo del backup.
+Dopo un errore create/append successivo alla mutazione, il bridge esterno non esegue un ripristino CLI automatico e distruttivo. Conserva backup esatto ed evidenza audit composta solo da metadati, lascia intatta la nota osservata e può restituire `manual_recovery_required=true`. Bridge Control 0.5.4 riconosce i corrispondenti codici diagnostici limitati in Problemi recenti; non legge né mostra il corpo del backup.
 
-## Archiviazione locale fuori dal vault
+## Accesso al filesystem locale fuori dal vault
+
+Bridge Control usa le API filesystem Node soltanto per questi archivi esterni documentati: impostazioni condivise e relativo lock di proprietà o copia di quarantena per revoca; registro globale Obsidian di sola lettura; richieste di gestione autenticate e monouso; backup di recupero; record audit composti solo da metadati. Non usa mai le API filesystem Node per leggere o scrivere il percorso di una nota. Il contenuto delle note viene letto e modificato soltanto tramite API pubbliche di Obsidian.
 
 Il plugin aggiorna un file locale:
 
@@ -30,7 +32,7 @@ Il plugin aggiorna un file locale:
 - macOS: `~/Library/Application Support/ObsidianBridge/settings.json`
 - Linux: `$XDG_CONFIG_HOME/ObsidianBridge/settings.json` oppure `~/.config/ObsidianBridge/settings.json`
 
-Il file contiene identità e percorso del vault, modalità `protected`, `full` (Accesso autonomo) o `management` (Gestione completa), cartelle relative autorizzate e permessi esatti edit/move/trash. Le voci rigorose in versione 2 e versione 3 migrano alla versione 4 senza autorità di gestione. Non contiene note, prompt, risposte del modello o API key.
+Il file contiene identità e percorso del vault, vero `Vault.configDir`, modalità `protected`, `full` (Accesso autonomo) o `management` (Gestione completa), cartelle relative autorizzate e permessi esatti edit/move/trash. Le voci rigorose dalla versione 2 alla versione 4 migrano alla versione 5 senza inventare autorità di gestione. Un vault precedente resta senza accesso finché la propria istanza Obsidian non registra la cartella di configurazione reale. Non contiene note, prompt, risposte del modello o API key.
 
 I normali dati Obsidian del plugin conservano una copia della modalità scelta, dello stato attivo, della modalità di lettura, degli elenchi relativi di cartelle leggibili/scrivibili, delle scelte granulari di gestione e fino a 100 ID di modifiche audit segnate come controllate. Questa copia rende utilizzabile il pannello ma non può autorizzare Accesso autonomo o Gestione completa: se manca la voce condivisa, viene sempre forzata ad Accesso protetto. Non contiene corpi delle note o dei backup.
 
@@ -38,9 +40,9 @@ Se una revoca non può essere verificata dopo un nuovo tentativo sicuro, Bridge 
 
 Un amministratore può modificare esplicitamente questo percorso con `OBSIDIAN_BRIDGE_SETTINGS_PATH` nell'ambiente del processo di Obsidian. I dati del plugin del vault non possono cambiare la destinazione.
 
-## Diagnostica CLI
+## Diagnostica dei candidati CLI
 
-La diagnostica parte soltanto dopo un clic esplicito. Controlla un override d'ambiente o percorsi noti dell'installazione/registrazione CLI, non il `PATH` generale. Il candidato viene eseguito soltanto con `version`, senza shell, ed è accettato solo se restituisce un formato versione Obsidian riconosciuto. Il risultato viene mostrato localmente.
+La diagnostica parte soltanto dopo un clic esplicito. Ricava un candidato da un override d'ambiente o da percorsi noti dell'installazione/registrazione CLI, non dal `PATH` generale. Bridge Control non avvia, esegue o interroga il candidato. Mostra localmente il risultato non autorevole; il bridge esterno effettua la verifica definitiva quando tenta un'operazione allowlistata che usa la CLI.
 
 ## Problemi recenti
 

@@ -18,11 +18,13 @@ Bridge Control accesses:
 
 It does not read or write note bodies while configuring access or diagnosing recent problems. It may check whether an audited note path currently exists and open that note only after the user selects **Open note**.
 
-During an authenticated managed operation, Bridge Control already reads the exact affected note through Obsidian's Vault API for compare-and-swap verification, backup, mutation, and postcondition checks. The matching 0.5.3 external bridge uses a settings-backed bounded exact UTF-8 read-only snapshot for every create/append and management transactional observation, including preparation, CAS, backup capture, chunk/final verification, and recovery classification. Create/append mutation still uses only the allowlisted official CLI. This changes no data category, network flow, permission, command-protocol field, or direct note-write surface.
+During an authenticated managed operation, Bridge Control reads the exact affected note through Obsidian's Vault API for compare-and-swap verification, backup, mutation, and postcondition checks. The matching 0.5.4 external bridge uses a settings-backed bounded exact UTF-8 read-only snapshot for every create/append and management transactional observation, including preparation, CAS, backup capture, chunk/final verification, and recovery classification. Create/append mutation still uses only the allowlisted official CLI. This changes no data category, network flow, permission, command-protocol field, or direct note-write surface.
 
-After a post-mutation create/append failure, the external bridge does not perform a destructive automatic CLI restore. It preserves exact backup and metadata-only audit evidence, leaves the observed note untouched, and can report `manual_recovery_required=true`. Bridge Control 0.5.3 recognizes the matching bounded diagnostic codes in Recent problems; it does not read or display the backup body.
+After a post-mutation create/append failure, the external bridge does not perform a destructive automatic CLI restore. It preserves exact backup and metadata-only audit evidence, leaves the observed note untouched, and can report `manual_recovery_required=true`. Bridge Control 0.5.4 recognizes the matching bounded diagnostic codes in Recent problems; it does not read or display the backup body.
 
-## Local storage outside the vault
+## Local filesystem access outside the vault
+
+Bridge Control uses Node filesystem APIs only for these documented external stores: shared settings and their ownership lock or revocation-quarantine copy; the read-only global Obsidian registry; authenticated one-time management requests; recovery backups; and metadata-only audit records. It never uses Node filesystem APIs to read or write a note path. Note content is read and mutated only through public Obsidian APIs.
 
 The plugin updates one local shared settings file:
 
@@ -30,7 +32,7 @@ The plugin updates one local shared settings file:
 - macOS: `~/Library/Application Support/ObsidianBridge/settings.json`
 - Linux: `$XDG_CONFIG_HOME/ObsidianBridge/settings.json` or `~/.config/ObsidianBridge/settings.json`
 
-The file contains vault identity, absolute path, the `protected`, `full` (Autonomous), or `management` access mode, authorized relative folders, and exact edit/move/trash grants. Strict version-2 and version-3 entries migrate to version 4 without management authority. It does not contain note bodies, prompts, model responses, or API keys.
+The file contains vault identity, absolute path, actual `Vault.configDir`, the `protected`, `full` (Autonomous), or `management` access mode, authorized relative folders, and exact edit/move/trash grants. Strict version-2 through version-4 entries migrate to version 5 without inventing management authority. A legacy vault stays deny-all until its own Obsidian instance records the real configuration directory. It does not contain note bodies, prompts, model responses, or API keys.
 
 The plugin's normal Obsidian data caches the selected access mode, enabled state, read mode, relative read/write folder lists, granular management choices, and up to 100 acknowledged audit change IDs. This cache keeps the panel usable, but it is never authoritative for enabling Autonomous access or Full management: if the shared entry is missing, the cache is forced back to Protected access. It does not store audit note bodies or backup content.
 
@@ -38,9 +40,9 @@ If a revocation cannot be verified after a safe retry, Bridge Control may rename
 
 An administrator can explicitly override this location with `OBSIDIAN_BRIDGE_SETTINGS_PATH` in Obsidian's process environment. Vault plugin data cannot change the destination.
 
-## CLI diagnostics
+## CLI candidate diagnostics
 
-Diagnostics run only after an explicit user click. They inspect an explicit environment override or known Obsidian installation/CLI registration paths, not the ambient `PATH`. A candidate is executed with only `version`, without a shell, and accepted only if its output matches a recognized Obsidian version format. The result is displayed locally.
+Diagnostics run only after an explicit user click. They derive a candidate from an explicit environment override or known Obsidian installation/CLI registration paths, not the ambient `PATH`. Bridge Control does not spawn, execute, or query the candidate. It displays the non-authoritative result locally; the external bridge performs the definitive readiness check when it attempts an allowlisted CLI-backed operation.
 
 ## Recent problems
 
