@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 - 2026-07-12
+
+- Fix the settings-panel rerender crash shown immediately after Full access was successfully enabled.
+- Pass each CSS class as an individual DOM token and add a regression test that rejects multi-token `addClass` calls.
+- Distinguish a real activation failure from a post-save panel refresh failure so a verified permission is never reported as rejected.
+- Keep the verified Full-access policy unchanged during the update.
+
 ## 0.4.0 - 2026-07-12
 
 - Add a prominent **Accesso completo** profile with one explicit per-vault acknowledgement and immediate return to protected access.
