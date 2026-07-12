@@ -259,6 +259,18 @@ jobs:
             jq '.[0]' "$release_matches" > "$release_json"
           }
 
+          wait_for_release_visibility() {
+            for attempt in {1..10}; do
+              if find_release; then
+                return 0
+              fi
+              if [[ "$attempt" -lt 10 ]]; then
+                sleep 2
+              fi
+            done
+            return 1
+          }
+
           validate_draft() {
             if [[ "$(jq -r '.draft' "$release_json")" != "true" ]]; then
               echo "::error::Release $RELEASE_TAG is already published; refusing to change its assets."
@@ -279,6 +291,35 @@ jobs:
             done
           }
 
+          asset_set_matches_expected() {
+            mapfile -t actual < <(jq -r '.assets[].name' "$release_json" | LC_ALL=C sort)
+            if [[ "${#actual[@]}" -ne "${#expected[@]}" ]]; then
+              return 1
+            fi
+            for index in "${!expected[@]}"; do
+              if [[ "${actual[$index]}" != "${expected[$index]}" ]]; then
+                return 1
+              fi
+            done
+            return 0
+          }
+
+          wait_for_complete_asset_set() {
+            for attempt in {1..10}; do
+              if find_release; then
+                validate_draft
+                validate_no_extra_assets
+                if asset_set_matches_expected; then
+                  return 0
+                fi
+              fi
+              if [[ "$attempt" -lt 10 ]]; then
+                sleep 2
+              fi
+            done
+            return 1
+          }
+
           if ! find_release; then
             gh release create "$RELEASE_TAG" \
               --repo "$GITHUB_REPOSITORY" \
@@ -286,7 +327,7 @@ jobs:
               --draft \
               --generate-notes \
               --title "Bridge Control $RELEASE_TAG"
-            if ! find_release; then
+            if ! wait_for_release_visibility; then
               echo "::error::Draft release $RELEASE_TAG was not visible after creation."
               exit 1
             fi
@@ -303,30 +344,12 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --clobber
 
-          if ! find_release; then
-            echo "::error::Draft release $RELEASE_TAG disappeared after asset upload."
+          if ! wait_for_complete_asset_set; then
+            echo "::error::Draft release $RELEASE_TAG did not expose the exact asset set after bounded retries."
             exit 1
           fi
-          validate_draft
           if [[ "$(jq -r '.id' "$release_json")" != "$release_id" ]]; then
             echo "::error::Release identity changed while uploading assets."
-            exit 1
-          fi
-
-          mapfile -t actual < <(jq -r '.assets[].name' "$release_json" | LC_ALL=C sort)
-          asset_set_matches=true
-          if [[ "${#actual[@]}" -ne "${#expected[@]}" ]]; then
-            asset_set_matches=false
-          else
-            for index in "${!expected[@]}"; do
-              if [[ "${actual[$index]}" != "${expected[$index]}" ]]; then
-                asset_set_matches=false
-                break
-              fi
-            done
-          fi
-          if [[ "$asset_set_matches" != "true" ]]; then
-            echo "::error::Unexpected final draft asset set: ${actual[*]}"
             exit 1
           fi
 
