@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1 - 2026-07-12
+
+- Accept and display the bridge's bounded `failure_stage` and `cause_code` metadata for recent failed create and append operations.
+- Keep the diagnostic record content-free: raw exception messages, CLI stdout/stderr, note text, proposed content, and backup bodies are never stored or shown.
+- Preserve strict audit validation, current-vault filtering, rollback classification, and the independent retention of recent failures.
+- Clarify that diagnostics explain an observed failure but never grant permission or authorize an automatic retry.
+
 ## 0.5.0 - 2026-07-12
 
 - Add an explicitly confirmed **Full management** profile alongside Protected and Autonomous access.

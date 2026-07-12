@@ -40,7 +40,7 @@ La diagnostica parte soltanto dopo un clic esplicito. Controlla un override d'am
 
 ## Problemi recenti
 
-Problemi recenti legge al massimo gli ultimi 128 KiB di `audit.ndjson` del bridge esterno, restituisce al massimo 20 record validati per l'ID stabile del vault corrente, rifiuta collegamenti simbolici e file non regolari e ignora in sicurezza le righe malformate. I record possono contenere percorso della nota, hash, operazione, modalità di autorizzazione, codice errore, esito del recupero, ID backup, data e ID modifica, ma non il corpo di note o backup.
+Problemi recenti legge al massimo gli ultimi 128 KiB di `audit.ndjson` del bridge esterno, restituisce al massimo 20 record validati per l'ID stabile del vault corrente, rifiuta collegamenti simbolici e file non regolari e ignora in sicurezza le righe malformate. I record possono contenere percorso della nota, hash, operazione, modalità di autorizzazione, codice errore, esito del recupero, ID backup, data, ID modifica e valori opzionali e limitati `failure_stage` e `cause_code`. Non contengono mai messaggi grezzi delle eccezioni, stdout/stderr della CLI, testo delle note, contenuto proposto o corpo dei backup. I metadati diagnostici non sono un permesso, una conferma o un'autorizzazione a riprovare.
 
 Senza override, Bridge Control e Obsidian Bridge usano la stessa cartella dati locale deterministica della piattaforma. Se `OBSIDIAN_BRIDGE_DATA_DIR` viene personalizzata per Codex, Obsidian deve ereditare la stessa variabile assoluta affinché il pannello mostri quel registro; il tool MCP del bridge legge comunque direttamente la cartella configurata dal writer.
 

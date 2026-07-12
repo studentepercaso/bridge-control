@@ -40,7 +40,7 @@ Diagnostics run only after an explicit user click. They inspect an explicit envi
 
 ## Recent problems
 
-Recent problems reads at most the final 128 KiB of the external bridge's `audit.ndjson`, returns at most 20 validated records for the current stable vault ID, rejects symlinks and non-regular files, and ignores malformed lines. Audit records may contain note paths, hashes, operation, authorization channel, error code, recovery outcome, backup ID, timestamp, and change ID, but not note or backup bodies.
+Recent problems reads at most the final 128 KiB of the external bridge's `audit.ndjson`, returns at most 20 validated records for the current stable vault ID, rejects symlinks and non-regular files, and ignores malformed lines. Audit records may contain note paths, hashes, operation, authorization channel, error code, recovery outcome, backup ID, timestamp, change ID, and optional bounded `failure_stage` and `cause_code` values. They never contain raw exception messages, CLI stdout/stderr, note text, proposed content, or backup bodies. Diagnostic metadata is not permission, confirmation, or authority to retry.
 
 Without an override, Bridge Control and Obsidian Bridge use the same deterministic platform local-data directory. If `OBSIDIAN_BRIDGE_DATA_DIR` is customized for Codex, Obsidian must inherit the same absolute variable for this panel to display that audit file; the bridge's MCP log tool still reads the writer's configured location directly.
 
