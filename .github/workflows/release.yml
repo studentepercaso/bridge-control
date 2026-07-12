@@ -1,0 +1,345 @@
+name: Build and attest release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing exact x.y.z release tag to rebuild and attest
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-attest:
+    name: Build and attest release assets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Validate tag and release metadata
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::Historical backfill must be dispatched from refs/heads/main."
+            exit 1
+          fi
+
+          node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+
+          const tag = process.env.RELEASE_TAG;
+          if (!/^\d+\.\d+\.\d+$/u.test(tag ?? "")) {
+            throw new Error(`Release tag must be an exact x.y.z version; received ${JSON.stringify(tag)}.`);
+          }
+
+          const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+          const manifest = JSON.parse(await readFile("manifest.json", "utf8"));
+          const versions = JSON.parse(await readFile("versions.json", "utf8"));
+
+          if (packageJson.version !== tag || manifest.version !== tag) {
+            throw new Error(
+              `Tag ${tag} does not match package ${packageJson.version} and manifest ${manifest.version}.`,
+            );
+          }
+          if (versions[tag] !== manifest.minAppVersion) {
+            throw new Error(
+              `versions.json does not map ${tag} to minAppVersion ${manifest.minAppVersion}.`,
+            );
+          }
+          NODE
+
+          if ! git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            echo "::error::Release tag $RELEASE_TAG does not exist."
+            exit 1
+          fi
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-list -n 1 "refs/tags/$RELEASE_TAG")" ]]; then
+            echo "::error::Checked-out commit does not match release tag $RELEASE_TAG."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor HEAD refs/remotes/origin/main; then
+            echo "::error::Release tags must point to a commit contained in main."
+            exit 1
+          fi
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run checks and first production build
+        run: npm run check
+
+      - name: Verify a repeatable production build
+        run: |
+          cp main.js "$RUNNER_TEMP/main.first.js"
+          npm run build
+          cmp --silent "$RUNNER_TEMP/main.first.js" main.js
+          git diff --exit-code
+          test -s main.js
+          test -s manifest.json
+          test -s styles.css
+
+      - name: Stage rebuilt release assets
+        run: |
+          mkdir release-assets
+          cp main.js manifest.json styles.css release-assets/
+
+      - name: Compare an existing release before backfill
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          release_json="$RUNNER_TEMP/backfill-release.json"
+          gh api "/repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$release_json"
+
+          if ! jq -e --arg tag "$RELEASE_TAG" '
+            .tag_name == $tag and .draft == false
+          ' "$release_json" >/dev/null; then
+            echo "::error::Backfill requires the published release for exact tag $RELEASE_TAG."
+            exit 1
+          fi
+
+          expected=(main.js manifest.json styles.css)
+          mapfile -t actual < <(jq -r '.assets[].name' "$release_json" | LC_ALL=C sort)
+          asset_set_matches=true
+          if [[ "${#actual[@]}" -ne "${#expected[@]}" ]]; then
+            asset_set_matches=false
+          else
+            for index in "${!expected[@]}"; do
+              if [[ "${actual[$index]}" != "${expected[$index]}" ]]; then
+                asset_set_matches=false
+                break
+              fi
+            done
+          fi
+          if [[ "$asset_set_matches" != "true" ]]; then
+            echo "::error::Unexpected published asset set from the GitHub Releases API: ${actual[*]}"
+            exit 1
+          fi
+
+          mkdir published-assets
+          for asset in "${expected[@]}"; do
+            asset_url="$(jq -er --arg name "$asset" '
+              .assets[] | select(.name == $name) | .url
+            ' "$release_json")"
+            gh api \
+              --header "Accept: application/octet-stream" \
+              "$asset_url" > "published-assets/$asset"
+            cmp --silent "release-assets/$asset" "published-assets/$asset" || {
+              echo "::error::Published $asset differs from the clean rebuild; refusing attestation."
+              exit 1
+            }
+          done
+
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg release_tag "$RELEASE_TAG" \
+            --arg source_commit "$(git rev-parse HEAD)" \
+            --argjson release_id "$(jq '.id' "$release_json")" \
+            --arg release_url "$(jq -r '.html_url' "$release_json")" \
+            '{
+              schemaVersion: 1,
+              verificationType: "historical-release-rebuild",
+              repository: $repository,
+              releaseTag: $release_tag,
+              sourceCommit: $source_commit,
+              releaseId: $release_id,
+              releaseUrl: $release_url,
+              releaseState: "published",
+              assetSet: ["main.js", "manifest.json", "styles.css"],
+              assertions: {
+                tagResolvesToSourceCommit: true,
+                sourceCommitContainedInMain: true,
+                repeatedBuildByteIdentical: true,
+                publishedAssetsMatchCleanRebuild: true
+              }
+            }' > "$RUNNER_TEMP/historical-release-verification.json"
+
+      - name: Generate GitHub build-provenance attestations
+        if: github.event_name == 'push'
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Attest the historical release verification
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+          predicate-type: https://github.com/studentepercaso/bridge-control/attestations/historical-release-verification/v1
+          predicate-path: ${{ runner.temp }}/historical-release-verification.json
+
+      - name: Preserve new release assets
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bridge-control-release
+          path: release-assets/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  draft-release:
+    name: Create draft GitHub release
+    if: github.event_name == 'push'
+    needs: build-and-attest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - name: Restore attested build outputs
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bridge-control-release
+          path: release-assets
+
+      - name: Create or resume the draft and upload exact assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          expected=(main.js manifest.json styles.css)
+          release_json="$RUNNER_TEMP/draft-release.json"
+          release_pages="$RUNNER_TEMP/releases-pages.json"
+          release_matches="$RUNNER_TEMP/release-matches.json"
+
+          find_release() {
+            if ! gh api --paginate --slurp \
+              "/repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$release_pages"; then
+              echo "::error::Could not enumerate GitHub releases."
+              exit 1
+            fi
+            if ! jq --arg tag "$RELEASE_TAG" '
+              [.[][] | select(.tag_name == $tag)]
+            ' "$release_pages" > "$release_matches"; then
+              echo "::error::GitHub returned an invalid release list."
+              exit 1
+            fi
+
+            count="$(jq 'length' "$release_matches")"
+            if [[ "$count" -gt 1 ]]; then
+              echo "::error::More than one release record exists for tag $RELEASE_TAG."
+              exit 1
+            fi
+            if [[ "$count" -eq 0 ]]; then
+              return 1
+            fi
+
+            jq '.[0]' "$release_matches" > "$release_json"
+          }
+
+          validate_draft() {
+            if [[ "$(jq -r '.draft' "$release_json")" != "true" ]]; then
+              echo "::error::Release $RELEASE_TAG is already published; refusing to change its assets."
+              exit 1
+            fi
+          }
+
+          validate_no_extra_assets() {
+            mapfile -t actual < <(jq -r '.assets[].name' "$release_json" | LC_ALL=C sort)
+            for asset in "${actual[@]}"; do
+              case "$asset" in
+                main.js|manifest.json|styles.css) ;;
+                *)
+                  echo "::error::Draft contains unexpected asset $asset; refusing to overwrite the release."
+                  exit 1
+                  ;;
+              esac
+            done
+          }
+
+          if ! find_release; then
+            gh release create "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --verify-tag \
+              --draft \
+              --generate-notes \
+              --title "Bridge Control $RELEASE_TAG"
+            if ! find_release; then
+              echo "::error::Draft release $RELEASE_TAG was not visible after creation."
+              exit 1
+            fi
+          fi
+
+          validate_draft
+          validate_no_extra_assets
+          release_id="$(jq -r '.id' "$release_json")"
+
+          gh release upload "$RELEASE_TAG" \
+            "release-assets/main.js#Obsidian plugin bundle" \
+            "release-assets/manifest.json#Obsidian plugin manifest" \
+            "release-assets/styles.css#Obsidian plugin styles" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+          if ! find_release; then
+            echo "::error::Draft release $RELEASE_TAG disappeared after asset upload."
+            exit 1
+          fi
+          validate_draft
+          if [[ "$(jq -r '.id' "$release_json")" != "$release_id" ]]; then
+            echo "::error::Release identity changed while uploading assets."
+            exit 1
+          fi
+
+          mapfile -t actual < <(jq -r '.assets[].name' "$release_json" | LC_ALL=C sort)
+          asset_set_matches=true
+          if [[ "${#actual[@]}" -ne "${#expected[@]}" ]]; then
+            asset_set_matches=false
+          else
+            for index in "${!expected[@]}"; do
+              if [[ "${actual[$index]}" != "${expected[$index]}" ]]; then
+                asset_set_matches=false
+                break
+              fi
+            done
+          fi
+          if [[ "$asset_set_matches" != "true" ]]; then
+            echo "::error::Unexpected final draft asset set: ${actual[*]}"
+            exit 1
+          fi
+
+          mkdir verified-assets
+          for asset in "${expected[@]}"; do
+            asset_url="$(jq -er --arg name "$asset" '
+              .assets[] | select(.name == $name) | .url
+            ' "$release_json")"
+            gh api \
+              --header "Accept: application/octet-stream" \
+              "$asset_url" > "verified-assets/$asset"
+            cmp --silent "release-assets/$asset" "verified-assets/$asset" || {
+              echo "::error::Uploaded $asset does not match the attested build output."
+              exit 1
+            }
+          done
