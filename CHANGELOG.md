@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 - 2026-07-12
+
+- Add an explicitly confirmed **Full management** profile alongside Protected and Autonomous access.
+- Split elevated mutation authority into independent per-vault permissions for note/frontmatter editing, rename/move, and move to Obsidian trash.
+- Register the narrow public Obsidian CLI handler `bridge-control:commit` for authenticated, expiring, single-use requests prepared by Obsidian Bridge.
+- Execute mutations through public Obsidian APIs: atomic `Vault.process` (including YAML frontmatter helpers), isolated `Vault.rename`, and `FileManager.trashFile`.
+- Create a recovery backup before each managed mutation, verify postconditions, append metadata-only audit outcomes, and attempt bounded recovery after a partial failure.
+- Reject stale hashes, expired or replayed requests, mismatched vault IDs, unsafe paths, destination collisions, and permissions revoked before commit.
+- Deliberately omit permanent deletion, JavaScript evaluation, shell access, arbitrary Obsidian commands, plugin management, and unrestricted filesystem operations.
+- Migrate strict version-2 and version-3 settings to version 4 without inventing management grants. Version-3 Full access remains Autonomous access; invalid or unverifiable policies fail closed.
+- Keep elevated activation user-only: local plugin data cannot restore Autonomous or Full-management access, and every permission increase is saved and read back under the shared settings lock.
+- Extend Recent problems to classify managed `replace`, `frontmatter`, `move`, and `trash` outcomes without exposing note or backup bodies.
+
 ## 0.4.1 - 2026-07-12
 
 - Fix the settings-panel rerender crash shown immediately after Full access was successfully enabled.
