@@ -30,7 +30,10 @@ The draft step is safe to rerun. It resumes an existing draft for the tag,
 accepts only the three expected asset names, uploads the same attested outputs
 with `--clobber`, and downloads them again to verify both the final asset set
 and every byte. It refuses to modify a published release or a draft containing
-any extra asset.
+any extra asset. GitHub's release list can be briefly eventually consistent
+after draft creation or asset upload, so the workflow performs bounded
+two-second visibility checks for at most 20 seconds; every retry repeats the
+draft-state and no-extra-asset guards.
 
 ## Backfill an existing release
 
