@@ -18,6 +18,8 @@ Bridge Control utilizza:
 
 Durante la configurazione e la diagnostica dei problemi recenti non legge né scrive il contenuto delle note. Può controllare se il percorso di una nota registrata nell'audit esiste e aprirla soltanto quando l'utente sceglie **Apri nota**.
 
+Durante un'operazione gestita autenticata, Bridge Control legge già la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.2 corrispondente ricava ora l'hash preparato da uno snapshot UTF-8 esatto della stessa sorgente autorizzata invece che dall'output normalizzato della CLI. Non cambiano categorie di dati, flussi di rete, permessi, campi di protocollo o superfici di scrittura diretta.
+
 ## Archiviazione locale fuori dal vault
 
 Il plugin aggiorna un file locale:
@@ -26,9 +28,9 @@ Il plugin aggiorna un file locale:
 - macOS: `~/Library/Application Support/ObsidianBridge/settings.json`
 - Linux: `$XDG_CONFIG_HOME/ObsidianBridge/settings.json` oppure `~/.config/ObsidianBridge/settings.json`
 
-Il file contiene identità e percorso del vault, modalità protetta/completa e cartelle relative autorizzate. Le voci rigorose in versione 2 migrano alla versione 3 soltanto come accesso protetto. Non contiene note, prompt, risposte del modello o API key.
+Il file contiene identità e percorso del vault, modalità `protected`, `full` (Accesso autonomo) o `management` (Gestione completa), cartelle relative autorizzate e permessi esatti edit/move/trash. Le voci rigorose in versione 2 e versione 3 migrano alla versione 4 senza autorità di gestione. Non contiene note, prompt, risposte del modello o API key.
 
-I normali dati Obsidian del plugin conservano una copia della modalità scelta, dello stato attivo, della modalità di lettura, degli elenchi relativi di cartelle leggibili/scrivibili e fino a 100 ID di modifiche audit segnate come controllate. Questa copia rende utilizzabile il pannello ma non può autorizzare l'accesso completo: se manca la voce condivisa, viene sempre forzata alla modalità protetta. Non contiene corpi delle note o dei backup.
+I normali dati Obsidian del plugin conservano una copia della modalità scelta, dello stato attivo, della modalità di lettura, degli elenchi relativi di cartelle leggibili/scrivibili, delle scelte granulari di gestione e fino a 100 ID di modifiche audit segnate come controllate. Questa copia rende utilizzabile il pannello ma non può autorizzare Accesso autonomo o Gestione completa: se manca la voce condivisa, viene sempre forzata ad Accesso protetto. Non contiene corpi delle note o dei backup.
 
 Se una revoca non può essere verificata dopo un nuovo tentativo sicuro, Bridge Control può rinominare il file condiviso in una copia di quarantena `.revoked-…json` con data nella stessa cartella, così l'accesso autonomo si chiude in modo prudente. La copia contiene gli stessi metadati sensibili di identità e permessi del vault e va rimossa dopo il recupero.
 

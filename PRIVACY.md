@@ -18,6 +18,8 @@ Bridge Control accesses:
 
 It does not read or write note bodies while configuring access or diagnosing recent problems. It may check whether an audited note path currently exists and open that note only after the user selects **Open note**.
 
+During an authenticated managed operation, Bridge Control already reads the exact affected note through Obsidian's Vault API for compare-and-swap verification, backup, mutation, and postcondition checks. The matching 0.5.2 external bridge now derives its prepared hash from an exact UTF-8 snapshot of that same authorized source instead of normalized CLI output. This changes no data category, network flow, permission, protocol field, or direct note-write surface.
+
 ## Local storage outside the vault
 
 The plugin updates one local shared settings file:
@@ -26,9 +28,9 @@ The plugin updates one local shared settings file:
 - macOS: `~/Library/Application Support/ObsidianBridge/settings.json`
 - Linux: `$XDG_CONFIG_HOME/ObsidianBridge/settings.json` or `~/.config/ObsidianBridge/settings.json`
 
-The file contains vault identity, absolute path, protected/full access mode, and authorized relative folders. Strict version-2 entries migrate to version 3 as protected access only. It does not contain note bodies, prompts, model responses, or API keys.
+The file contains vault identity, absolute path, the `protected`, `full` (Autonomous), or `management` access mode, authorized relative folders, and exact edit/move/trash grants. Strict version-2 and version-3 entries migrate to version 4 without management authority. It does not contain note bodies, prompts, model responses, or API keys.
 
-The plugin's normal Obsidian data caches the selected access mode, enabled state, read mode, relative read/write folder lists, and up to 100 acknowledged audit change IDs. This cache keeps the panel usable, but it is never authoritative for enabling full access: if the shared entry is missing, the cache is forced back to protected mode. It does not store audit note bodies or backup content.
+The plugin's normal Obsidian data caches the selected access mode, enabled state, read mode, relative read/write folder lists, granular management choices, and up to 100 acknowledged audit change IDs. This cache keeps the panel usable, but it is never authoritative for enabling Autonomous access or Full management: if the shared entry is missing, the cache is forced back to Protected access. It does not store audit note bodies or backup content.
 
 If a revocation cannot be verified after a safe retry, Bridge Control may rename the shared settings file to a timestamped `.revoked-…json` quarantine copy in the same directory so autonomous access fails closed. That copy contains the same sensitive vault identity and permission metadata and should be removed after recovery.
 

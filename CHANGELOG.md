@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.2 - 2026-07-12
+
+- Align with Obsidian Bridge 0.5.2 exact UTF-8 management snapshots so notes without a final newline no longer produce false `CHANGE_CONFLICT` results.
+- Preserve the in-Obsidian compare-and-swap check: real source changes between prepare and commit continue to fail closed before mutation.
+- Keep the `bridge-control:commit` request protocol, version-4 settings schema, granular edit/move/trash grants, backups, audit fields, and public Obsidian API mutation surface unchanged.
+- Add no direct note-write path, permission, command, or remote service.
+
 ## 0.5.1 - 2026-07-12
 
 - Accept and display the bridge's bounded `failure_stage` and `cause_code` metadata for recent failed create and append operations.
