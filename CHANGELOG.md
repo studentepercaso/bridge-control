@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.4 - 2026-07-12
+
+- Publish the companion version aligned with Obsidian Bridge 0.3.4.
+- Keep the existing visual folder permissions and deny-by-default behavior unchanged.
+- Point users to the matching bridge update, which prevents the Obsidian 1.12.7 Windows CLI IPC crash during long note writes.
+
 ## 0.3.3 - 2026-07-11
 
 - Publish Bridge Control as a standalone desktop-only Obsidian community plugin.

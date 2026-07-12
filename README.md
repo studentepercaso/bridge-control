@@ -22,7 +22,7 @@ Bridge Control is the desktop-only Obsidian companion for Obsidian Bridge. It le
 4. Open **Settings → Community plugins → Bridge Control**.
 5. Choose folders, enable **Read** and optionally **Write**, and save access.
 
-The 0.3.3 settings interface is currently in Italian. This README provides the corresponding English workflow.
+The 0.3.4 settings interface is currently in Italian. This README provides the corresponding English workflow.
 
 ## Default behavior
 
