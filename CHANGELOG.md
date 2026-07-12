@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.3 - 2026-07-12
+
+- Publish metadata and documentation matching Obsidian Bridge 0.5.3, and update the read-only audit diagnostics parser/UI to accept and classify the two bounded manual-recovery codes.
+- Document that settings-backed create/append transactions now use bounded exact UTF-8 observations throughout preparation, conflict checks, backup capture, verification, and recovery classification, while mutations remain restricted to the allowlisted official Obsidian CLI.
+- Document fail-closed migration for the legacy environment-only writer, the 1 MiB resulting-document boundary for append, the existing-parent requirement for create, and explicit manual-recovery diagnostics after a post-mutation create/append failure.
+- Keep Bridge Control's settings schema, command protocol, public Obsidian API mutation code, permission model, audit format, and management behavior unchanged; diagnostics remain bounded and read-only.
+
 ## 0.5.2 - 2026-07-12
 
 - Align with Obsidian Bridge 0.5.2 exact UTF-8 management snapshots so notes without a final newline no longer produce false `CHANGE_CONFLICT` results.

@@ -18,7 +18,9 @@ Bridge Control utilizza:
 
 Durante la configurazione e la diagnostica dei problemi recenti non legge né scrive il contenuto delle note. Può controllare se il percorso di una nota registrata nell'audit esiste e aprirla soltanto quando l'utente sceglie **Apri nota**.
 
-Durante un'operazione gestita autenticata, Bridge Control legge già la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.2 corrispondente ricava ora l'hash preparato da uno snapshot UTF-8 esatto della stessa sorgente autorizzata invece che dall'output normalizzato della CLI. Non cambiano categorie di dati, flussi di rete, permessi, campi di protocollo o superfici di scrittura diretta.
+Durante un'operazione gestita autenticata, Bridge Control legge già la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.3 corrispondente usa uno snapshot UTF-8 esatto, limitato, di sola lettura e basato sulle impostazioni per ogni osservazione transazionale create/append e gestita, comprese preparazione, CAS, acquisizione backup, verifica dei blocchi e finale e classificazione del recupero. Le mutazioni create/append continuano a usare soltanto la CLI ufficiale allowlistata. Non cambiano categorie di dati, flussi di rete, permessi, campi del protocollo dei comandi o superfici di scrittura diretta.
+
+Dopo un errore create/append successivo alla mutazione, il bridge esterno non esegue un ripristino CLI automatico e distruttivo. Conserva backup esatto ed evidenza audit composta solo da metadati, lascia intatta la nota osservata e può restituire `manual_recovery_required=true`. Bridge Control 0.5.3 riconosce i corrispondenti codici diagnostici limitati in Problemi recenti; non legge né mostra il corpo del backup.
 
 ## Archiviazione locale fuori dal vault
 
@@ -42,7 +44,7 @@ La diagnostica parte soltanto dopo un clic esplicito. Controlla un override d'am
 
 ## Problemi recenti
 
-Problemi recenti legge al massimo gli ultimi 128 KiB di `audit.ndjson` del bridge esterno, restituisce al massimo 20 record validati per l'ID stabile del vault corrente, rifiuta collegamenti simbolici e file non regolari e ignora in sicurezza le righe malformate. I record possono contenere percorso della nota, hash, operazione, modalità di autorizzazione, codice errore, esito del recupero, ID backup, data, ID modifica e valori opzionali e limitati `failure_stage` e `cause_code`. Non contengono mai messaggi grezzi delle eccezioni, stdout/stderr della CLI, testo delle note, contenuto proposto o corpo dei backup. I metadati diagnostici non sono un permesso, una conferma o un'autorizzazione a riprovare.
+Problemi recenti legge al massimo gli ultimi 128 KiB di `audit.ndjson` del bridge esterno, restituisce al massimo 20 record validati per l'ID stabile del vault corrente, rifiuta collegamenti simbolici e file non regolari e ignora in sicurezza le righe malformate. I record possono contenere percorso della nota, hash, operazione, modalità di autorizzazione, codice errore, esito del recupero, ID backup, data, ID modifica e valori opzionali e limitati `failure_stage` e `cause_code`, comprese le categorie sicure di recupero manuale. Non contengono mai messaggi grezzi delle eccezioni, stdout/stderr della CLI, testo delle note, contenuto proposto o corpo dei backup. I metadati diagnostici non sono un permesso, una conferma o un'autorizzazione a riprovare.
 
 Senza override, Bridge Control e Obsidian Bridge usano la stessa cartella dati locale deterministica della piattaforma. Se `OBSIDIAN_BRIDGE_DATA_DIR` viene personalizzata per Codex, Obsidian deve ereditare la stessa variabile assoluta affinché il pannello mostri quel registro; il tool MCP del bridge legge comunque direttamente la cartella configurata dal writer.
 
