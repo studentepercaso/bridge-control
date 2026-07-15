@@ -85,7 +85,7 @@ release against this repository's SLSA provenance, exact signer workflow, and
 tag source ref:
 
 ```sh
-TAG=0.5.4
+TAG=0.5.5
 for ASSET in main.js manifest.json styles.css; do
   gh attestation verify "$ASSET" \
     --repo studentepercaso/bridge-control \
