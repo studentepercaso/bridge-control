@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.5 - 2026-07-15
+
+- Align standalone Bridge Control metadata and documentation with the matching Obsidian Bridge 0.5.5 release.
+- Document that one create/append proposal in the external bridge can now contain up to 64 KiB of UTF-8 content, increased from 8 KiB.
+- Preserve the existing 1 MiB maximum for the exact resulting note and the 3072-byte maximum for each Unicode-safe Obsidian CLI frame.
+- Keep Bridge Control runtime behavior, permissions, settings schema, command protocol, managed mutation code, and bundled `main.js` unchanged.
+
 ## 0.5.4 - 2026-07-12
 
 - Remove `child_process` and every executable launch from Bridge Control; CLI diagnostics now report only a non-authoritative candidate and leave the definitive readiness check to the external bridge.

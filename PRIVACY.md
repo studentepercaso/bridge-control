@@ -1,6 +1,6 @@
 # Privacy
 
-Effective date: 2026-07-12
+Effective date: 2026-07-15
 
 Bridge Control is local, open-source configuration software. It has no hosted service, account system, advertising, analytics, or project-operated telemetry.
 
@@ -18,9 +18,9 @@ Bridge Control accesses:
 
 It does not read or write note bodies while configuring access or diagnosing recent problems. It may check whether an audited note path currently exists and open that note only after the user selects **Open note**.
 
-During an authenticated managed operation, Bridge Control reads the exact affected note through Obsidian's Vault API for compare-and-swap verification, backup, mutation, and postcondition checks. The matching 0.5.4 external bridge uses a settings-backed bounded exact UTF-8 read-only snapshot for every create/append and management transactional observation, including preparation, CAS, backup capture, chunk/final verification, and recovery classification. Create/append mutation still uses only the allowlisted official CLI. This changes no data category, network flow, permission, command-protocol field, or direct note-write surface.
+During an authenticated managed operation, Bridge Control reads the exact affected note through Obsidian's Vault API for compare-and-swap verification, backup, mutation, and postcondition checks. The matching 0.5.5 external bridge uses a settings-backed bounded exact UTF-8 read-only snapshot for every create/append and management transactional observation, including preparation, CAS, backup capture, chunk/final verification, and recovery classification. One create/append proposal may contain at most 64 KiB of UTF-8 content; the resulting note remains bounded to 1 MiB and every Unicode-safe CLI frame remains bounded to 3072 UTF-8 bytes. Create/append mutation still uses only the allowlisted official CLI. This changes no data category, network flow, permission, command-protocol field, or direct note-write surface.
 
-After a post-mutation create/append failure, the external bridge does not perform a destructive automatic CLI restore. It preserves exact backup and metadata-only audit evidence, leaves the observed note untouched, and can report `manual_recovery_required=true`. Bridge Control 0.5.4 recognizes the matching bounded diagnostic codes in Recent problems; it does not read or display the backup body.
+After a post-mutation create/append failure, the external bridge does not perform a destructive automatic CLI restore. It preserves exact backup and metadata-only audit evidence, leaves the observed note untouched, and can report `manual_recovery_required=true`. Bridge Control 0.5.5 recognizes the matching bounded diagnostic codes in Recent problems; it does not read or display the backup body.
 
 ## Local filesystem access outside the vault
 

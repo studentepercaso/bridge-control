@@ -1,6 +1,6 @@
 # Privacy
 
-Data di efficacia: 12 luglio 2026
+Data di efficacia: 15 luglio 2026
 
 Bridge Control è un software locale e open source per configurare i permessi. Non possiede servizi ospitati, account, pubblicità, analisi d'uso o telemetria gestita dal progetto.
 
@@ -18,9 +18,9 @@ Bridge Control utilizza:
 
 Durante la configurazione e la diagnostica dei problemi recenti non legge né scrive il contenuto delle note. Può controllare se il percorso di una nota registrata nell'audit esiste e aprirla soltanto quando l'utente sceglie **Apri nota**.
 
-Durante un'operazione gestita autenticata, Bridge Control legge la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.4 corrispondente usa uno snapshot UTF-8 esatto, limitato, di sola lettura e basato sulle impostazioni per ogni osservazione transazionale create/append e gestita, comprese preparazione, CAS, acquisizione backup, verifica dei blocchi e finale e classificazione del recupero. Le mutazioni create/append continuano a usare soltanto la CLI ufficiale allowlistata. Non cambiano categorie di dati, flussi di rete, permessi, campi del protocollo dei comandi o superfici di scrittura diretta.
+Durante un'operazione gestita autenticata, Bridge Control legge la nota interessata tramite l'API Vault di Obsidian per verifica compare-and-swap, backup, modifica e controllo del risultato. Il bridge esterno 0.5.5 corrispondente usa uno snapshot UTF-8 esatto, limitato, di sola lettura e basato sulle impostazioni per ogni osservazione transazionale create/append e gestita, comprese preparazione, CAS, acquisizione backup, verifica dei blocchi e finale e classificazione del recupero. Una singola proposta create/append può contenere al massimo 64 KiB di contenuto UTF-8; la nota risultante resta limitata a 1 MiB e ogni frame CLI Unicode-safe resta limitato a 3072 byte UTF-8. Le mutazioni create/append continuano a usare soltanto la CLI ufficiale allowlistata. Non cambiano categorie di dati, flussi di rete, permessi, campi del protocollo dei comandi o superfici di scrittura diretta.
 
-Dopo un errore create/append successivo alla mutazione, il bridge esterno non esegue un ripristino CLI automatico e distruttivo. Conserva backup esatto ed evidenza audit composta solo da metadati, lascia intatta la nota osservata e può restituire `manual_recovery_required=true`. Bridge Control 0.5.4 riconosce i corrispondenti codici diagnostici limitati in Problemi recenti; non legge né mostra il corpo del backup.
+Dopo un errore create/append successivo alla mutazione, il bridge esterno non esegue un ripristino CLI automatico e distruttivo. Conserva backup esatto ed evidenza audit composta solo da metadati, lascia intatta la nota osservata e può restituire `manual_recovery_required=true`. Bridge Control 0.5.5 riconosce i corrispondenti codici diagnostici limitati in Problemi recenti; non legge né mostra il corpo del backup.
 
 ## Accesso al filesystem locale fuori dal vault
 
