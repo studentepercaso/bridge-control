@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.6 - 2026-07-17
+
+- Align standalone Bridge Control metadata and documentation with Obsidian Bridge 0.5.6.
+- Document the external bridge fix for false read conflicts caused by metadata-only `ctime` churn on synchronized Windows files.
+- Keep the companion runtime, settings schema, permissions, command protocol, and managed mutation behavior unchanged.
+
 ## 0.5.5 - 2026-07-15
 
 - Align standalone Bridge Control metadata and documentation with the matching Obsidian Bridge 0.5.5 release.

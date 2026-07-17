@@ -2,7 +2,7 @@
 
 [English](README.md) · [Italiano](README.it.md)
 
-Bridge Control is the desktop-only Obsidian companion for Obsidian Bridge. Version 0.5.5 aligns the standalone release with the matching bridge's larger create/append proposal limit while preserving the review-hardened companion, the explicit **Full management**, Protected, and Autonomous profiles, and the existing permission boundaries.
+Bridge Control is the desktop-only Obsidian companion for Obsidian Bridge. Version 0.5.6 coordinates with the matching bridge fix for false read conflicts on OneDrive and other synchronized Windows files while preserving the review-hardened companion, the explicit **Full management**, Protected, and Autonomous profiles, and the existing permission boundaries.
 
 ## Default behavior
 
@@ -33,7 +33,7 @@ Obsidian Bridge prepares a bounded preview and a short-lived, one-time request. 
 - `Vault.rename()` for rename/move without silently rewriting other notes or expanding the Move grant into Edit;
 - `FileManager.trashFile()` for recoverable deletion.
 
-The matching 0.5.5 bridge uses settings-backed bounded exact UTF-8 snapshots for every create/append and managed transactional observation, including prepare, CAS, backup capture, chunk/final verification, and recovery classification. The snapshot path is read-only; create/append mutation remains on the allowlisted official Obsidian CLI. One create/append proposal can now contain up to 64 KiB of UTF-8 content, increased from 8 KiB. The exact resulting note still cannot exceed 1 MiB, and long content is still split on Unicode code-point boundaries into complete CLI frames of at most 3072 UTF-8 bytes. Environment-only create/append requires migration to Bridge Control, and create requires an existing parent folder. Version 0.5.5 changes neither the companion command protocol nor managed mutation code.
+The matching 0.5.6 bridge verifies synchronized notes with repeated byte-identical reads and a bounded quiet metadata window. Metadata-only `ctime` changes can settle without becoming false content conflicts, while identity, size, `mtime`, path, truncation, growth, or byte changes still fail closed. The snapshot path remains read-only; create/append mutation remains on the allowlisted official Obsidian CLI. One create/append proposal can contain up to 64 KiB of UTF-8 content, the exact resulting note cannot exceed 1 MiB, and long content is split on Unicode code-point boundaries into complete CLI frames of at most 3072 UTF-8 bytes. Environment-only create/append requires migration to Bridge Control, and create requires an existing parent folder. Version 0.5.6 changes neither the companion command protocol nor managed mutation code.
 
 Before mutation, the handler stores a local recovery backup. It verifies the result, records metadata in the shared audit log, and attempts a bounded rollback when a partially applied operation does not meet its postcondition. Requests are serialized and consumed once.
 
@@ -43,7 +43,7 @@ There is deliberately no permanent-delete operation, JavaScript evaluation, shel
 
 ## Shared settings
 
-Bridge Control 0.5.5 atomically maintains strict shared-settings version 5:
+Bridge Control 0.5.6 atomically maintains strict shared-settings version 5:
 
 - Windows: `%LOCALAPPDATA%\ObsidianBridge\settings.json`
 - macOS: `~/Library/Application Support/ObsidianBridge/settings.json`
@@ -81,10 +81,10 @@ For manual testing, copy `main.js`, `manifest.json`, and `styles.css` to:
 <vault>/.obsidian/plugins/bridge-control/
 ```
 
-Then reload Obsidian and enable **Bridge Control** under Community plugins. Managed operations require Obsidian 1.12.7 or later, the official CLI enabled for the external bridge, and the matching Obsidian Bridge 0.5.5 release.
+Then reload Obsidian and enable **Bridge Control** under Community plugins. Managed operations require Obsidian 1.12.7 or later, the official CLI enabled for the external bridge, and the matching Obsidian Bridge 0.5.6 release.
 
 Tagged releases are built twice from the lockfile by GitHub Actions. The workflow requires byte-identical output, attests `main.js`, `manifest.json`, and `styles.css`, and uploads those exact assets to a draft release. See [docs/RELEASE_WORKFLOW.md](docs/RELEASE_WORKFLOW.md) for verification and the fail-closed backfill procedure.
 
-See the [0.5.5 bilingual release notes](docs/RELEASE_NOTES_0.5.5.md) for the exact bridge limits and compatibility details.
+See the [0.5.6 bilingual release notes](docs/RELEASE_NOTES_0.5.6.md) for the exact bridge limits and compatibility details.
 
 This project is independent and is not affiliated with or endorsed by Obsidian.
