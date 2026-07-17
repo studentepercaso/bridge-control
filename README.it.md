@@ -2,7 +2,7 @@
 
 [English](README.md) · [Italiano](README.it.md)
 
-Bridge Control è il companion desktop di Obsidian Bridge. La versione 0.5.6 si coordina con la correzione del bridge per i falsi conflitti di lettura su OneDrive e altri file Windows sincronizzati, conservando il companion rafforzato per la revisione, i profili espliciti **Gestione completa**, Accesso protetto e Accesso autonomo e gli stessi confini dei permessi.
+Bridge Control è il companion desktop di Obsidian Bridge. La versione 0.5.7 allinea il companion all’installer Windows autosufficiente e nitido ad alta risoluzione, conservando la correzione per i file sincronizzati, il companion rafforzato per la revisione, i profili espliciti **Gestione completa**, Accesso protetto e Accesso autonomo e gli stessi confini dei permessi.
 
 ## Comportamento iniziale
 
@@ -33,7 +33,7 @@ Obsidian Bridge prepara un'anteprima limitata e una richiesta monouso con scaden
 - `Vault.rename()` per rinomina e spostamento senza riscrivere silenziosamente altre note o trasformare il permesso Sposta in Modifica;
 - `FileManager.trashFile()` per una cancellazione recuperabile.
 
-Il bridge 0.5.6 corrispondente verifica le note sincronizzate con letture ripetute e identiche byte per byte e una finestra limitata di stabilità dei metadati. Le sole variazioni di `ctime` possono stabilizzarsi senza diventare falsi conflitti di contenuto, mentre cambi di identità, dimensione, `mtime`, percorso o byte, troncamenti e crescite continuano a essere respinti. Il percorso di snapshot resta di sola lettura; le mutazioni create/append restano sulla CLI ufficiale allowlistata. Una singola proposta create/append può contenere fino a 64 KiB di testo UTF-8, la nota risultante esatta resta limitata a 1 MiB e i contenuti lunghi restano divisi sui confini dei punti di codice Unicode in frame CLI completi di massimo 3072 byte UTF-8. Create/append configurati soltanto tramite ambiente richiedono la migrazione a Bridge Control e create richiede una cartella padre esistente. La versione 0.5.6 non cambia né il protocollo dei comandi del companion né il codice di mutazione gestita.
+Il bridge 0.5.7 corrispondente verifica le note sincronizzate con letture ripetute e identiche byte per byte e una finestra limitata di stabilità dei metadati. Le sole variazioni di `ctime` possono stabilizzarsi senza diventare falsi conflitti di contenuto, mentre cambi di identità, dimensione, `mtime`, percorso o byte, troncamenti e crescite continuano a essere respinti. Il percorso di snapshot resta di sola lettura; le mutazioni create/append restano sulla CLI ufficiale allowlistata. Ogni proposta create/append accetta al massimo 64 KiB di contenuto UTF-8, la relativa anteprima completa è limitata a 192 KiB e i contenuti lunghi restano suddivisi in frame CLI completi di non più di 3072 byte UTF-8. Create/append configurati soltanto tramite ambiente richiedono la migrazione a Bridge Control, il documento risultante dopo append resta limitato a 1 MiB e create richiede una cartella padre esistente. La versione 0.5.7 non cambia né il protocollo dei comandi del companion né il codice di mutazione gestita.
 
 Prima della modifica, l'handler salva un backup locale di recupero. Poi verifica il risultato, registra i metadati nell'audit condiviso e tenta un rollback limitato se un'operazione applicata solo in parte non raggiunge la condizione attesa. Le richieste sono serializzate e consumate una sola volta.
 
@@ -43,7 +43,7 @@ Non esistono volutamente operazioni di cancellazione permanente, valutazione Jav
 
 ## Impostazioni condivise
 
-Bridge Control 0.5.6 mantiene atomicamente il formato rigoroso versione 5:
+Bridge Control 0.5.7 mantiene atomicamente il formato rigoroso versione 5:
 
 - Windows: `%LOCALAPPDATA%\ObsidianBridge\settings.json`
 - macOS: `~/Library/Application Support/ObsidianBridge/settings.json`
@@ -81,10 +81,10 @@ Per una prova manuale copia `main.js`, `manifest.json` e `styles.css` in:
 <vault>/.obsidian/plugins/bridge-control/
 ```
 
-Poi ricarica Obsidian e abilita **Bridge Control** tra i plugin della community. Le operazioni gestite richiedono Obsidian 1.12.7 o successivo, la CLI ufficiale abilitata per il bridge esterno e la versione corrispondente Obsidian Bridge 0.5.6.
+Poi ricarica Obsidian e abilita **Bridge Control** tra i plugin della community. Le operazioni gestite richiedono Obsidian 1.12.7 o successivo, la CLI ufficiale abilitata per il bridge esterno e la versione corrispondente Obsidian Bridge 0.5.7.
 
 Le release con tag sono costruite due volte dal lockfile tramite GitHub Actions. Il workflow richiede output identico byte per byte, attesta `main.js`, `manifest.json` e `styles.css` e carica quegli stessi asset in una bozza di release. Consulta [docs/RELEASE_WORKFLOW.md](docs/RELEASE_WORKFLOW.md) per la verifica e la procedura di backfill fail-closed.
 
-Consulta le [note di rilascio bilingui 0.5.6](docs/RELEASE_NOTES_0.5.6.md) per i limiti esatti del bridge e i dettagli di compatibilità.
+Consulta le [note di rilascio bilingui 0.5.7](docs/RELEASE_NOTES_0.5.7.md) per i dettagli esatti di compatibilità.
 
 Questo progetto è indipendente e non è affiliato né approvato da Obsidian.
