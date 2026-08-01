@@ -24,7 +24,7 @@
     "check": "npm run typecheck && npm test && npm run build && npm run security-check && npm run verify-release"
   },
   "devDependencies": {
-    "@types/node": "26.1.1",
+    "@types/node": "26.1.2",
     "esbuild": "0.28.1",
     "obsidian": "1.13.1",
     "typescript": "7.0.2",
